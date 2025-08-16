@@ -51,6 +51,4 @@ ProofMint AI taps into the $2.66 trillion circular economy by 2035 (13.57% CAGR)
 ProofMint AI redefines commerce by embedding sustainability into every transaction. By incentivizing recycling with AI-verified rewards, it reduces e-waste, lowers carbon footprints, and creates a marketplace for intelligent assets. This shift drives economic value—projected $5M revenue by 2027—while fostering a greener, decentralized future, positioning 0G as a leader in AI-driven economic transformation.
 
 
-## License
 
-MIT License - Open for community contribution.# proofmint-ai-OG
