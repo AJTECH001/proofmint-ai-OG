@@ -89,11 +89,23 @@ export function useProofMint() {
     if (!provider || !account) return false;
     
     try {
+      // Try to get the DEFAULT_ADMIN_ROLE constant
       const adminRole = await callView(provider, 'DEFAULT_ADMIN_ROLE', [], account || undefined);
       return getRole(adminRole, account || '');
     } catch (error) {
       console.error('Error checking admin status:', error);
-      return false;
+      
+      // If DEFAULT_ADMIN_ROLE fails, try checking with a known admin role hash
+      // 0x00 is typically the default admin role in OpenZeppelin contracts
+      try {
+        const defaultAdminRoleHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        return getRole(defaultAdminRoleHash, account || '');
+      } catch (fallbackError) {
+        console.error('Fallback admin check also failed:', fallbackError);
+        // Return false for now, but in production you might want to check a hardcoded list
+        // or use a different method to determine admin status
+        return false;
+      }
     }
   }, [callView, getRole, provider, account]);
 

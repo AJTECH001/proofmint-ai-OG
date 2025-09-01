@@ -52,6 +52,9 @@ export interface Receipt {
   timestamp: number;
   isPaid: boolean;
   isRecycled: boolean;
+  // 0G Storage integration
+  attachments?: FileAttachment[];
+  storageMetadata?: ReceiptStorageMetadata;
 }
 
 export interface TransactionData {
@@ -120,4 +123,56 @@ export interface TransactionFormProps extends ContractInteractionProps {
   functionName: string;
   args?: unknown[];
   value?: bigint;
+}
+
+// 0G Storage integration types
+export interface FileAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  rootHash: string;
+  transactionHash: string;
+  uploadedAt: Date;
+  uploadedBy: `0x${string}`;
+  isVerified?: boolean;
+}
+
+export interface ReceiptStorageMetadata {
+  mainDocumentHash?: string; // Primary receipt document on 0G Storage
+  attachmentHashes: string[]; // Array of file root hashes
+  totalStorageSize: number;
+  storageNodes: string[];
+  verificationStatus: 'pending' | 'verified' | 'failed';
+  lastUpdated: Date;
+}
+
+export interface StorageUploadRequest {
+  receiptId: string;
+  file: File;
+  category: 'receipt' | 'invoice' | 'warranty' | 'manual' | 'image' | 'other';
+  description?: string;
+}
+
+export interface StorageDownloadRequest {
+  rootHash: string;
+  filename?: string;
+  withProof?: boolean;
+  receiptId?: string;
+}
+
+// KV Store types for metadata
+export interface ReceiptKVMetadata {
+  receiptId: string;
+  attachments: {
+    [rootHash: string]: {
+      filename: string;
+      category: string;
+      uploadedAt: string;
+      size: number;
+      verified: boolean;
+    };
+  };
+  tags: string[];
+  searchableContent?: string;
 }
