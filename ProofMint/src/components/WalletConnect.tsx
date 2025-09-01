@@ -4,7 +4,7 @@ import React, { useState } from "react";
 // Extend the Window interface to include the ethereum property
 declare global {
   interface Window {
-    ethereum?: unknown;
+    ethereum?: any;
   }
 }
 import { ethers } from "ethers";

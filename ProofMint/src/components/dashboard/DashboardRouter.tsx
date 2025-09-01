@@ -31,7 +31,6 @@ const DashboardRouter: React.FC<DashboardRouterProps> = ({ forceRole }) => {
   const { data: userRoles, error: rolesError, isLoading: rolesLoading } = useUserRoles(accountAddress);
 
   // Check if user is on correct network
-  const isCorrectNetwork = chainId === ZG_TESTNET_ID;
 
   useEffect(() => {
     if (chainId && chainId !== ZG_TESTNET_ID) {

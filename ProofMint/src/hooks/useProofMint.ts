@@ -19,7 +19,7 @@ export function useProofMint() {
   const getReceipt = useCallback(
     async (receiptId: number): Promise<Receipt> => {
       if (!provider || !isConnected) throw new Error('Not connected');
-      return callView(provider, 'getReceipt', [receiptId], account);
+      return callView(provider, 'getReceipt', [receiptId], account || undefined);
     },
     [callView, provider, isConnected, account]
   );
@@ -28,12 +28,12 @@ export function useProofMint() {
     async (userAddress: string): Promise<Receipt[]> => {
       if (!provider || !isConnected) throw new Error('Not connected');
       
-      const count = await callView(provider, 'balanceOf', [userAddress], account);
+      const count = await callView(provider, 'balanceOf', [userAddress], account || undefined);
       
       const receiptPromises = [];
       for (let i = 0; i < Number(count); i++) {
         receiptPromises.push(
-          callView(provider, 'tokenOfOwnerByIndex', [userAddress, i], account)
+          callView(provider, 'tokenOfOwnerByIndex', [userAddress, i], account || undefined)
             .then((tokenId) => getReceipt(Number(tokenId)))
         );
       }
@@ -80,7 +80,7 @@ export function useProofMint() {
     async (role: string, address: string) => {
       if (!provider) throw new Error('Provider not available');
       
-      return callView(provider, 'hasRole', [role, address], account);
+      return callView(provider, 'hasRole', [role, address], account || undefined);
     },
     [callView, provider, account]
   );
@@ -89,8 +89,8 @@ export function useProofMint() {
     if (!provider || !account) return false;
     
     try {
-      const adminRole = await callView(provider, 'DEFAULT_ADMIN_ROLE', [], account);
-      return getRole(adminRole, account);
+      const adminRole = await callView(provider, 'DEFAULT_ADMIN_ROLE', [], account || undefined);
+      return getRole(adminRole, account || '');
     } catch (error) {
       console.error('Error checking admin status:', error);
       return false;

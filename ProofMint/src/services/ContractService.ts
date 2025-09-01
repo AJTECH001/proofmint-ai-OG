@@ -1,10 +1,9 @@
 import { ethers } from "ethers";
 import { checkRoles, contractAddress, contractABI } from "../utils/contract"; // Adjust path to contract.ts
-import { ContractType, Receipt, TransactionData, UserRoleResponse, TokenInfoResponse } from "../types/contracts";
+import { ContractType, Receipt, UserRoleResponse, TokenInfoResponse } from "../types/contracts";
 import { mockContractAddresses, mockReceipts, mockTokenBalances, mockKYCStatus } from "../data/contractMockData";
 
 // Import ABIs
-import ProofMintABI from "../abi/ProofMint.json";
 import PaymentEscrowABI from "../abi/PaymentEscrow.json";
 import ProofMintTokenABI from "../abi/ProofMintToken.json";
 import ZKKYCVerifierABI from "../abi/ZKKYCVerifier.json";
@@ -125,7 +124,7 @@ export class ContractService {
   static async getTokenBalance(address: `0x${string}`): Promise<bigint> {
     try {
       // For demo purposes, return mock data
-      return mockTokenBalances[address] || 0n;
+      return (mockTokenBalances as Record<string, bigint>)[address] || 0n;
     } catch (error) {
       console.error("Error fetching token balance:", error);
       return 0n;
@@ -156,7 +155,7 @@ export class ContractService {
   static async getKYCStatus(address: `0x${string}`): Promise<boolean> {
     try {
       // For demo purposes, return mock data
-      return mockKYCStatus[address] || false;
+      return (mockKYCStatus as Record<string, boolean>)[address] || false;
     } catch (error) {
       console.error("Error fetching KYC status:", error);
       return false;
@@ -165,9 +164,9 @@ export class ContractService {
 
   // Transaction simulation methods
   static async simulateIssueReceipt(
-    buyer: `0x${string}`,
-    ipfsCID: `0x${string}`,
-    amount: bigint
+    _buyer: `0x${string}`,
+    _ipfsCID: `0x${string}`,
+    _amount: bigint
   ): Promise<{ success: boolean; receiptId?: bigint; error?: string }> {
     try {
       // Simulate transaction
@@ -186,7 +185,7 @@ export class ContractService {
     }
   }
 
-  static async simulateMarkPaid(receiptId: bigint): Promise<{ success: boolean; error?: string }> {
+  static async simulateMarkPaid(_receiptId: bigint): Promise<{ success: boolean; error?: string }> {
     try {
       // Simulate transaction
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -203,8 +202,8 @@ export class ContractService {
   }
 
   static async simulateTokenTransfer(
-    to: `0x${string}`,
-    amount: bigint
+    _to: `0x${string}`,
+    _amount: bigint
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Simulate transaction

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { BrowserProvider } from 'ethers'; // Updated import
-import { getContract, getContractWithSigner, getReadOnlyContract } from '../utils/contracts';
+import { getContractWithSigner, getReadOnlyContract } from '../utils/contracts';
 
 type ContractName = 'ProofMint' | 'ProofMintToken' | 'PaymentEscrow' | 'ZKKYCVerifier' | 'Groth16Verifier';
 
@@ -56,7 +56,7 @@ export function useContract(contractName: ContractName, readOnly: boolean = fals
       options: any = {}
     ): Promise<bigint> => {
       const contract = await getContractWithSigner(contractName, provider, account);
-      return contract.estimateGas[functionName](...args, options);
+      return (contract as any).estimateGas[functionName](...args, options);
     },
     [contractName]
   );

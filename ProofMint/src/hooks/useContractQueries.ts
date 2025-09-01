@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContractService } from "../services/ContractService";
-import { Receipt, UserRoleResponse, TokenInfoResponse } from "../types/contracts";
+import { UserRoleResponse } from "../types/contracts";
 import { isAddress } from "viem"; // Fixed import
 
 // Query keys
@@ -90,7 +90,7 @@ export const useIssueReceipt = () => {
   return useMutation({
     mutationFn: ({ buyer, ipfsCID, amount }: { buyer: `0x${string}`; ipfsCID: `0x${string}`; amount: bigint }) =>
       ContractService.simulateIssueReceipt(buyer, ipfsCID, amount),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: contractQueryKeys.receiptsByBuyer(variables.buyer),
       });
@@ -106,7 +106,7 @@ export const useMarkPaid = () => {
 
   return useMutation({
     mutationFn: ({ receiptId }: { receiptId: bigint }) => ContractService.simulateMarkPaid(receiptId),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: contractQueryKeys.receipt(variables.receiptId),
       });

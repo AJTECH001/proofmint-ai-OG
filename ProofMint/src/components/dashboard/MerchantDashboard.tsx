@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useProofMint } from "../../hooks/useProofMint";
-import { useUserRoles, useReceiptsByMerchant } from "../../hooks/useContractQueries";
+import { useReceiptsByMerchant } from "../../hooks/useContractQueries";
 import { IssueReceiptForm } from "../contracts/IssueReceiptForm";
 import { ReceiptList } from "../contracts/ReceiptList";
 import { UserRoleBadge } from "../contracts/UserRoleBadge";
@@ -12,7 +12,7 @@ import { isAddress } from "viem";
 
 const MerchantDashboard: React.FC = () => {
   const { address } = useAccount();
-  const { isAdmin } = useProofMint();
+  const { } = useProofMint();
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -26,8 +26,7 @@ const MerchantDashboard: React.FC = () => {
   const accountAddress = address && isAddress(address) ? address : undefined;
 
   // Get user roles and receipts
-  const { data: userRoles } = useUserRoles(accountAddress);
-  const { data: merchantReceipts, isLoading: receiptsLoading, refetch: refetchReceipts } = useReceiptsByMerchant(accountAddress);
+  const { data: merchantReceipts, isLoading: receiptsLoading, refetch: refetchReceipts } = useReceiptsByMerchant(accountAddress!);
 
   // Calculate stats when receipts change
   useEffect(() => {
@@ -47,7 +46,7 @@ const MerchantDashboard: React.FC = () => {
     setLoading(receiptsLoading);
   }, [merchantReceipts, receiptsLoading]);
 
-  const handleReceiptIssued = (receiptId: bigint) => {
+  const handleReceiptIssued = () => {
     setShowIssueForm(false);
     refetchReceipts(); // Refresh the receipts list
   };

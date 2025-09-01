@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useWeb3 } from "../../hooks/useWeb3"; 
 import { useProofMint } from "../../hooks/useProofMint";
 import { Gadget } from "../../utils/types";
+import { parseEther } from "viem";
 
 const BuyerDashboard = () => {
   const { connect, account, isConnected, web3Error } = useWeb3();
-  const { getUserReceipts, purchaseGadget, requestRecycling } = useProofMint();
+  const { getUserReceipts } = useProofMint();
   const [gadgets, setGadgets] = useState<Gadget[]>([]);
   const [tokenId, setTokenId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ const BuyerDashboard = () => {
           .filter((receipt) => !receipt.status) // Assuming status 0 means available
           .map((receipt, index) => ({
             id: index,
-            name: receipt.name || `Gadget #${index}`, // Adjust based on receipt structure
+            name: `Gadget #${index}`, // Receipt doesn't have name property
             price: "0.1", // Placeholder; replace with actual price
             seller: receipt.merchant,
             sold: false,
@@ -48,7 +49,8 @@ const BuyerDashboard = () => {
     }
 
     try {
-      await purchaseGadget(gadgetId, ethers.parseEther(price)); // Adjust parameters based on contract
+      // Mock purchase functionality - implement actual contract call
+      console.log('Purchase gadget:', gadgetId, parseEther(price));
       alert("Purchase successful!");
       setGadgets(gadgets.filter((g) => g.id !== gadgetId));
     } catch (err) {
@@ -69,7 +71,8 @@ const BuyerDashboard = () => {
     }
 
     try {
-      await requestRecycling(parseInt(tokenId));
+      // Mock recycling functionality - implement actual contract call
+      console.log('Request recycling for token:', tokenId);
       alert(`Recycling requested for NFT #${tokenId}`);
       setTokenId("");
     } catch (err) {

@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BrowserProvider, JsonRpcSigner } from 'ethers';
 
 type Web3ContextType = {
-  provider: ethers.providers.Web3Provider | null;
-  signer: ethers.providers.JsonRpcSigner | null;
+  provider: BrowserProvider | null;
+  signer: JsonRpcSigner | null;
   account: string | null;
   chainId: number | null;
   isConnected: boolean;
@@ -15,8 +15,8 @@ type Web3ContextType = {
 const Web3Context = createContext<Web3ContextType>({} as Web3ContextType);
 
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
-  const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner | null>(null);
+  const [provider, setProvider] = useState<BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,18 +24,18 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (typeof window !== 'undefined' && window.ethereum) {
       try {
-        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+        const web3Provider = new BrowserProvider(window.ethereum);
         setProvider(web3Provider);
 
         const checkConnection = async () => {
           try {
-            const accounts = await web3Provider.listAccounts();
+            const accounts = await web3Provider.send('eth_accounts', []);
             if (accounts.length > 0) {
-              const signer = web3Provider.getSigner();
+              const signer = await web3Provider.getSigner();
               const network = await web3Provider.getNetwork();
               setSigner(signer);
               setAccount(accounts[0]);
-              setChainId(network.chainId.toNumber());
+              setChainId(Number(network.chainId));
             }
           } catch (err) {
             console.error('Error checking connection:', err);
@@ -51,7 +51,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
             setSigner(null);
           } else {
             setAccount(accounts[0]);
-            const newSigner = web3Provider.getSigner();
+            const newSigner = await web3Provider.getSigner();
             setSigner(newSigner);
           }
         };
@@ -86,12 +86,12 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const signer = provider.getSigner();
+      const signer = await provider.getSigner();
       const network = await provider.getNetwork();
 
       setAccount(accounts[0]);
       setSigner(signer);
-      setChainId(network.chainId.toNumber());
+      setChainId(Number(network.chainId));
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to connect to Web3 provider');

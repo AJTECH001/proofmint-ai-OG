@@ -7,10 +7,10 @@ interface DashboardProps {
   role: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ account, role }) => {
+const Dashboard: React.FC<DashboardProps> = () => {
   return (
     <div className="min-h-screen bg-gray-100">
-      <AdminDashboard account={account} />
+      <AdminDashboard />
     </div>
   );
 };

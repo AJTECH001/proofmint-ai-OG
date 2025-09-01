@@ -9,7 +9,7 @@ interface ChatMessageProps {
   index: number;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, index }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const getCategoryIcon = (category?: string) => {
     switch (category) {
       case 'nft': return '🎫';

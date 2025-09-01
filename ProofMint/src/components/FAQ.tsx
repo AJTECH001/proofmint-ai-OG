@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Plus, Minus, HelpCircle, MessageSquare } from 'lucide-react';
@@ -10,7 +10,6 @@ const FAQCard = ({ question, answer, index, isOpen, onToggle }: {
   isOpen: boolean;
   onToggle: () => void;
 }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
     <motion.div

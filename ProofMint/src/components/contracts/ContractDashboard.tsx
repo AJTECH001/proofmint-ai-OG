@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useReceiptsByBuyer, useReceiptsByMerchant, useTokenBalance, useUserRoles } from '../../hooks/useContractQueries';
+import { useReceiptsByBuyer, useReceiptsByMerchant, useUserRoles } from '../../hooks/useContractQueries';
 import { ReceiptList } from './ReceiptList';
 import { TokenBalance } from './TokenBalance';
 import { UserRoleBadge } from './UserRoleBadge';

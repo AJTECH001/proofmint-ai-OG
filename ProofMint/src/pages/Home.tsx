@@ -1,5 +1,4 @@
 import React, { lazy, Suspense } from 'react';
-import { Link } from 'react-router-dom';
 import { Role } from '../utils/types';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -17,7 +16,7 @@ interface HomeProps {
   role: Role;
 }
 
-const Home: React.FC<HomeProps> = ({ account, role }) => {
+const Home: React.FC<HomeProps> = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

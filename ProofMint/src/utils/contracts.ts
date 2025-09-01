@@ -1,4 +1,4 @@
-import { Contract, ethers } from 'ethers';
+import { Contract, Provider, BrowserProvider, JsonRpcSigner } from 'ethers';
 import ProofMintABI from '../abi/ProofMint.json';
 import ProofMintTokenABI from '../abi/ProofMintToken.json';
 import PaymentEscrowABI from '../abi/PaymentEscrow.json';
@@ -27,7 +27,7 @@ const contractCache: Record<string, Contract> = {};
  */
 export function getContract(
   name: ContractName,
-  signerOrProvider: ethers.Signer | ethers.providers.Provider
+  signerOrProvider: JsonRpcSigner | Provider
 ): Contract {
   if (contractCache[name]) {
     return contractCache[name];
@@ -69,10 +69,10 @@ export function getContract(
  */
 export async function getContractWithSigner(
   name: ContractName,
-  provider: ethers.providers.Web3Provider,
-  account: string
+  provider: BrowserProvider,
+  _account: string
 ): Promise<Contract> {
-  const signer = provider.getSigner(account);
+  const signer = await provider.getSigner();
   return getContract(name, signer);
 }
 
@@ -84,7 +84,7 @@ export async function getContractWithSigner(
  */
 export function getReadOnlyContract(
   name: ContractName,
-  provider: ethers.providers.Provider
+  provider: Provider
 ): Contract {
   return getContract(name, provider);
 }
