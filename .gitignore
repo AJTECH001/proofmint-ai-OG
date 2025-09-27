@@ -1,1 +1,8 @@
 .DS_Store
+
+# Claude-generated documentation files
+**/*_INTEGRATION*.md
+**/*DEMO*.md
+**/TROUBLESHOOTING.md
+**/WAVE_*.md
+**/DASHBOARD_UPDATE_SUMMARY.md
