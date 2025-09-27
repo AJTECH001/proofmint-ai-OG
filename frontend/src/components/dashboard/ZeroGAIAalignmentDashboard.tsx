@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { 
-  Shield, Eye, AlertTriangle, CheckCircle, XCircle, TrendingUp, 
-  Users, Zap, Activity, BarChart3, Settings, Vote, FileText,
-  RefreshCw, Search, Filter, SortAsc, SortDesc, Clock, Award,
-  Network, Cpu, Database, Lock, Unlock, Flag, Star, Target,
-  Bell, ExternalLink, ChevronDown, ChevronRight, Info
+  Shield, Eye, AlertTriangle, CheckCircle, TrendingUp, 
+  Users, Activity, Settings, Vote, FileText,
+  RefreshCw, Search, Award,
+  Network, Plus
 } from 'lucide-react';
 import { 
   zeroGAIAalignmentService,
@@ -20,7 +19,7 @@ interface AlignmentDashboardProps {
 }
 
 export default function ZeroGAIAalignmentDashboard({ className = '' }: AlignmentDashboardProps) {
-  const { address } = useAccount();
+  const { } = useAccount();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [alignmentNodes, setAlignmentNodes] = useState<AIAlignmentNode[]>([]);
@@ -30,8 +29,6 @@ export default function ZeroGAIAalignmentDashboard({ className = '' }: Alignment
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNode, setSelectedNode] = useState<AIAlignmentNode | null>(null);
   const [showNodeModal, setShowNodeModal] = useState(false);
-  const [showProposalModal, setShowProposalModal] = useState(false);
-  const [selectedProposal, setSelectedProposal] = useState<AIGovernanceProposal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'monitoring' | 'flagged'>('all');
 
@@ -124,7 +121,6 @@ export default function ZeroGAIAalignmentDashboard({ className = '' }: Alignment
         return 'bg-green-100 text-green-800';
       case 'monitoring':
       case 'investigating':
-      case 'active':
         return 'bg-blue-100 text-blue-800';
       case 'flagged':
       case 'escalated':
@@ -180,8 +176,7 @@ export default function ZeroGAIAalignmentDashboard({ className = '' }: Alignment
     return matchesSearch && matchesStatus;
   });
 
-  const TabButton = ({ id, label, isActive, onClick }: {
-    id: string;
+  const TabButton = ({ label, isActive, onClick }: {
     label: string;
     isActive: boolean;
     onClick: () => void;
@@ -333,25 +328,21 @@ export default function ZeroGAIAalignmentDashboard({ className = '' }: Alignment
       <div className="bg-white rounded-xl shadow-sm border p-1">
         <div className="flex space-x-1">
           <TabButton
-            id="overview"
             label="🛡️ Overview"
             isActive={activeTab === 'overview'}
             onClick={() => setActiveTab('overview')}
           />
           <TabButton
-            id="nodes"
             label="🖥️ Alignment Nodes"
             isActive={activeTab === 'nodes'}
             onClick={() => setActiveTab('nodes')}
           />
           <TabButton
-            id="reports"
             label="📋 Reports"
             isActive={activeTab === 'reports'}
             onClick={() => setActiveTab('reports')}
           />
           <TabButton
-            id="governance"
             label="🗳️ Governance"
             isActive={activeTab === 'governance'}
             onClick={() => setActiveTab('governance')}

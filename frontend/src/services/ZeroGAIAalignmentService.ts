@@ -169,7 +169,7 @@ export class ZeroGAIAalignmentService {
   }
 
   // Monitor AI model drift
-  async monitorModelDrift(modelId: string, threshold: number = 0.05): Promise<AIAlignmentReport | null> {
+  async monitorModelDrift(modelId: string, _threshold: number = 0.05): Promise<AIAlignmentReport | null> {
     if (!this.isInitialized) {
       throw new Error('AI Alignment Service not initialized');
     }

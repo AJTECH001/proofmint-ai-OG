@@ -216,15 +216,13 @@ export class ZeroGDAService {
         return {
           success: false,
           results: [],
-          summary: { total: receipts.length, successful: 0, failed: receipts.length },
-          error: error.response.data?.error || 'Batch submission failed'
+          summary: { total: receipts.length, successful: 0, failed: receipts.length }
         };
       }
       return {
         success: false,
         results: [],
-        summary: { total: receipts.length, successful: 0, failed: receipts.length },
-        error: error instanceof Error ? error.message : 'Batch submission failed'
+        summary: { total: receipts.length, successful: 0, failed: receipts.length }
       };
     }
   }
@@ -492,6 +490,27 @@ export class ZeroGDAService {
         lastAccessed: now
       }
     };
+  }
+
+  // Get node status
+  async getNodeStatus(): Promise<DANodeStatus> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/node-status`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get node status:', error);
+      // Return a default status if the request fails
+      return {
+        isConnected: false,
+        nodeVersion: 'unknown',
+        networkId: 'unknown',
+        blockHeight: 0,
+        peerCount: 0,
+        syncStatus: 'disconnected',
+        encoderStatus: 'offline',
+        retrieverStatus: 'offline'
+      };
+    }
   }
 }
 

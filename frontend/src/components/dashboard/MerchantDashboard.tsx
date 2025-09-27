@@ -60,9 +60,7 @@ const MerchantDashboard: React.FC = () => {
       setIssuingReceipt(true);
       const receiptId = await ProofMintService.issueReceipt(
         receiptForm.buyer,
-        receiptForm.ipfsCID,
-        receiptForm.productType,
-        receiptForm.amount
+        receiptForm.ipfsCID
       );
       
       alert(`Receipt issued successfully! Receipt ID: ${receiptId}`);

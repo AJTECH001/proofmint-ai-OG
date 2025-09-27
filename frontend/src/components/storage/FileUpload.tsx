@@ -78,7 +78,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             type: file.type,
             size: file.size,
             rootHash: result.rootHash!,
-            transactionHash: result.transactionHash || 'mock_tx_hash',
+            transactionHash: result.txHash || 'mock_tx_hash',
             uploadedAt: new Date(),
             uploadedBy: '0x0000000000000000000000000000000000000000' as `0x${string}`,
             isVerified: true

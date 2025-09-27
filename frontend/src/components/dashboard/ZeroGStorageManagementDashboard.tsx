@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { 
-  Database, FileText, Server, Activity, CheckCircle, XCircle, AlertTriangle, 
-  Upload, Download, Settings, Users, TrendingUp, Shield, Eye, Plus,
-  RefreshCw, BarChart3, PieChart, Clock, HardDrive, Zap, Globe, X,
-  Layers, Key, Archive, Search, Filter, SortAsc, SortDesc
+  Database, Server, Activity, CheckCircle, XCircle, 
+  Upload, Download, Settings, TrendingUp, Shield, Eye,
+  RefreshCw, BarChart3, PieChart, HardDrive, Globe,
+  Archive, Search, SortAsc, SortDesc, Key, Plus, Layers
 } from 'lucide-react';
-import { zeroGStorageService, UploadResponse, BatchUploadResponse, StorageLayer } from '../../services/ZeroGStorageService';
+import { zeroGStorageService, StorageLayer } from '../../services/ZeroGStorageService';
 import ZeroGStorageUploader from './ZeroGStorageUploader';
 import ZeroGStorageDownloader from './ZeroGStorageDownloader';
 
@@ -61,12 +61,11 @@ interface FileInfo {
 }
 
 export default function ZeroGStorageManagementDashboard() {
-  const { address } = useAccount();
-  const chainId = useChainId();
+  const { } = useAccount();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
-  const [storageStats, setStorageStats] = useState<StorageStats>({
+  const [storageStats] = useState<StorageStats>({
     totalFiles: 1247,
     totalSize: '2.4TB',
     activeNodes: 89,
@@ -82,7 +81,6 @@ export default function ZeroGStorageManagementDashboard() {
   const [nodes, setNodes] = useState<NodeInfo[]>([]);
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<NodeInfo | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileInfo | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -241,8 +239,7 @@ export default function ZeroGStorageManagementDashboard() {
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
-  const TabButton = ({ id, label, isActive, onClick }: {
-    id: string;
+  const TabButton = ({ label, isActive, onClick }: {
     label: string;
     isActive: boolean;
     onClick: () => void;
@@ -414,31 +411,26 @@ export default function ZeroGStorageManagementDashboard() {
       <div className="bg-white rounded-xl shadow-sm border p-1">
         <div className="flex space-x-1">
           <TabButton
-            id="overview"
             label="📊 Overview"
             isActive={activeTab === 'overview'}
             onClick={() => setActiveTab('overview')}
           />
           <TabButton
-            id="storage"
             label="💾 Storage Layers"
             isActive={activeTab === 'storage'}
             onClick={() => setActiveTab('storage')}
           />
           <TabButton
-            id="files"
             label="📁 File Management"
             isActive={activeTab === 'files'}
             onClick={() => setActiveTab('files')}
           />
           <TabButton
-            id="nodes"
             label="🖥️ Storage Nodes"
             isActive={activeTab === 'nodes'}
             onClick={() => setActiveTab('nodes')}
           />
           <TabButton
-            id="analytics"
             label="📈 Analytics"
             isActive={activeTab === 'analytics'}
             onClick={() => setActiveTab('analytics')}
@@ -824,8 +816,8 @@ export default function ZeroGStorageManagementDashboard() {
                     {node.region}
                   </div>
                   <div className="flex gap-2">
-                    <button 
-                      onClick={() => setSelectedNode(node)}
+                    <button
+                      onClick={() => console.log('Node details functionality not implemented yet', node)}
                       className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                     >
                       <Eye className="w-3 h-3 mr-1" />

@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { 
-  Database, FileText, Server, Activity, CheckCircle, XCircle, AlertTriangle, 
-  Upload, Download, Settings, Users, TrendingUp, Shield, Eye, Plus,
-  RefreshCw, BarChart3, PieChart, Clock, HardDrive, Zap, Globe, X,
-  Layers, Key, Archive, Search, Filter, SortAsc, SortDesc, Timer,
-  FileCheck, FileX, Network, Cpu, MemoryStick
+  Database, Server, Activity, CheckCircle, XCircle, 
+  Upload, Download, TrendingUp, Shield, Eye,
+  RefreshCw, BarChart3, PieChart, 
+  Search, Timer,
+  FileCheck, FileX, MemoryStick, Zap, Cpu
 } from 'lucide-react';
 import { 
   zeroGDAService, 
-  DABlobData, 
-  DASubmissionResult, 
-  DARetrievalResult,
   DANodeStatus,
   DAAnalytics 
 } from '../../services/ZeroGDAService';
@@ -36,8 +33,7 @@ interface RecentActivity {
 }
 
 export default function ZeroGDADashboard() {
-  const { address } = useAccount();
-  const chainId = useChainId();
+  const { } = useAccount();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [nodeStatus, setNodeStatus] = useState<DANodeStatus | null>(null);
@@ -46,8 +42,6 @@ export default function ZeroGDADashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCommitment, setSelectedCommitment] = useState<DACommitmentInfo | null>(null);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [showRetrieveModal, setShowRetrieveModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'confirmed' | 'finalized'>('all');
 
@@ -197,8 +191,7 @@ export default function ZeroGDADashboard() {
     }
   };
 
-  const TabButton = ({ id, label, isActive, onClick }: {
-    id: string;
+  const TabButton = ({ label, isActive, onClick }: {
     label: string;
     isActive: boolean;
     onClick: () => void;
@@ -346,25 +339,21 @@ export default function ZeroGDADashboard() {
       <div className="bg-white rounded-xl shadow-sm border p-1">
         <div className="flex space-x-1">
           <TabButton
-            id="overview"
             label="📊 Overview"
             isActive={activeTab === 'overview'}
             onClick={() => setActiveTab('overview')}
           />
           <TabButton
-            id="commitments"
             label="🔗 Commitments"
             isActive={activeTab === 'commitments'}
             onClick={() => setActiveTab('commitments')}
           />
           <TabButton
-            id="nodes"
             label="🖥️ DA Nodes"
             isActive={activeTab === 'nodes'}
             onClick={() => setActiveTab('nodes')}
           />
           <TabButton
-            id="analytics"
             label="📈 Analytics"
             isActive={activeTab === 'analytics'}
             onClick={() => setActiveTab('analytics')}
@@ -529,7 +518,7 @@ export default function ZeroGDADashboard() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Data Availability Commitments</h3>
               <button
-                onClick={() => setShowSubmitModal(true)}
+                onClick={() => console.log('Submit data functionality not implemented yet')}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
               >
                 <Upload className="w-4 h-4 mr-2" />

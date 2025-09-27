@@ -65,7 +65,6 @@ export interface ReceiptCreationOptions {
 
 export class EnhancedProofMintService {
   private contract: ethers.Contract | null = null;
-  private provider: ethers.Provider | null = null;
   private signer: ethers.Signer | null = null;
 
   // Contract ABI with DA support
@@ -81,7 +80,6 @@ export class EnhancedProofMintService {
   ];
 
   async initialize(contractAddress: string, provider: ethers.Provider, signer?: ethers.Signer): Promise<void> {
-    this.provider = provider;
     this.signer = signer || null;
     this.contract = new ethers.Contract(
       contractAddress,
@@ -230,19 +228,55 @@ export class EnhancedProofMintService {
       receiptId: receipt.id,
       metadata: {
         device: receipt.deviceInfo,
-        purchase: receipt.purchaseInfo,
-        warranty: receipt.warranties,
-        sustainability: receipt.sustainability
+        purchase: {
+          ...receipt.purchaseInfo,
+          merchantAddress: '0x0000000000000000000000000000000000000000',
+          paymentMethod: 'unknown'
+        },
+        warranty: {
+          ...receipt.warranties,
+          coverage: [],
+          claimProcess: 'Contact manufacturer'
+        },
+        sustainability: {
+          recyclingProgram: receipt.sustainability.recyclingProgram,
+          carbonFootprint: 'Unknown',
+          ecoRating: receipt.sustainability.ecoRating || 'Unknown',
+          recyclabilityScore: 0,
+          materials: [],
+          disposalInstructions: 'Contact local recycling center'
+        },
+        technical: {
+          specifications: {},
+          accessories: [],
+          compatibility: []
+        }
       },
       proofs: {
         purchaseProof: '',
         authenticityProof: '',
-        ownershipChain: receipt.ownershipHistory.map(h => h.owner)
+        ownershipChain: receipt.ownershipHistory.map(h => h.owner),
+        verificationHash: receipt.verificationStatus || ''
       },
       attachments: receipt.attachments,
+      lifecycle: {
+        status: 'active' as const,
+        statusHistory: [{
+          status: 'active',
+          timestamp: new Date().toISOString(),
+          reason: 'Initial receipt creation'
+        }],
+        transfers: receipt.ownershipHistory.map((transfer, index) => ({
+          from: index === 0 ? 'manufacturer' : receipt.ownershipHistory[index - 1]?.owner || 'unknown',
+          to: transfer.owner,
+          timestamp: transfer.timestamp,
+          transactionHash: transfer.transactionHash || ''
+        }))
+      },
       timestamps: {
         created: receipt.ownershipHistory[0]?.timestamp || new Date().toISOString(),
-        lastModified: new Date().toISOString()
+        lastModified: new Date().toISOString(),
+        lastAccessed: new Date().toISOString()
       }
     };
   }

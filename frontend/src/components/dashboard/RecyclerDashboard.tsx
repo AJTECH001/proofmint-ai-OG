@@ -25,7 +25,7 @@ const RecyclerDashboard: React.FC = () => {
       
       const [recyclerReceipts, allReceipts] = await Promise.all([
         ProofMintService.getRecyclerReceipts(address),
-        ProofMintService.getAllReceipts(0, 100),
+        ProofMintService.getAllReceipts(),
       ]);
       
       // Filter receipts that are paid but not recycled

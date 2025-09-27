@@ -115,7 +115,7 @@ export class ProofMintService {
   }
 
   static async getReceiptStats(): Promise<ReceiptStats> {
-    const receipts = await this.getAllReceipts(0, 1000); // Get more receipts for stats
+    const receipts = await this.getAllReceipts(); // Get all receipts for stats
     
     return {
       total: receipts.length,
@@ -153,7 +153,27 @@ export class ProofMintService {
     throw new Error("Receipt ID not found in transaction logs");
   }
 
-  // markPaid function is not available in the current contract
+  static async markPaid(receiptId: bigint): Promise<void> {
+    try {
+      const contract = await this.getContract();
+      const tx = await contract.markPaid(receiptId);
+      await tx.wait();
+    } catch (error) {
+      console.error('Error marking receipt as paid:', error);
+      throw error;
+    }
+  }
+
+  static async markRecycled(receiptId: bigint): Promise<void> {
+    try {
+      const contract = await this.getContract();
+      const tx = await contract.markRecycled(receiptId);
+      await tx.wait();
+    } catch (error) {
+      console.error('Error marking receipt as recycled:', error);
+      throw error;
+    }
+  }
 
   static async getMerchantReceipts(merchantAddress: string): Promise<Receipt[]> {
     try {

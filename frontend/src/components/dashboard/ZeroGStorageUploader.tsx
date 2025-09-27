@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { zeroGStorageService, UploadResponse, BatchUploadResponse, StorageLayer } from '../../services/ZeroGStorageService';
-import { Upload, Download, Database, FileText, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, Database, FileText, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface ZeroGStorageUploaderProps {
   onUploadComplete?: (result: UploadResponse) => void;
@@ -116,7 +116,7 @@ export const ZeroGStorageUploader: React.FC<ZeroGStorageUploaderProps> = ({
 
         // Update progress with batch results
         setUploadProgress(prev => prev.map(p => {
-          const fileResult = result.results.find(r => 
+          const fileResult = result.results.find(_ => 
             acceptedFiles.find(f => f.name === p.filename)
           );
           return {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { zeroGDAService, DABlobData, DACommitment, DANodeStatus, DASubmissionResult, DARetrievalResult, DAConfig } from '../services/ZeroGDAService';
+import { zeroGDAService, DABlobData, DACommitment, DANodeStatus, DASubmissionResult, DARetrievalResult } from '../services/ZeroGDAService';
 
 interface ZeroGDAContextType {
   // State
@@ -9,7 +9,7 @@ interface ZeroGDAContextType {
   error: string | null;
   
   // Actions
-  initializeDA: (config?: Partial<DAConfig>) => Promise<boolean>;
+  initializeDA: (config?: any) => Promise<boolean>;
   submitReceiptData: (data: DABlobData) => Promise<DASubmissionResult>;
   getReceiptData: (commitment: string) => Promise<DARetrievalResult>;
   verifyDataAvailability: (commitment: string) => Promise<boolean>;
@@ -42,21 +42,21 @@ export const ZeroGDAProvider: React.FC<ZeroGDAProviderProps> = ({
   const clearError = () => setError(null);
 
   // Initialize DA service
-  const initializeDA = async (config?: Partial<DAConfig>): Promise<boolean> => {
+  const initializeDA = async (config?: any): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const success = await zeroGDAService.initialize(config);
-      setIsInitialized(success);
+      const result = await zeroGDAService.initialize(config);
+      setIsInitialized(result.success);
       
-      if (success) {
+      if (result.success) {
         await refreshNodeStatus();
       } else {
-        setError('Failed to initialize 0G DA service');
+        setError(result.error || 'Failed to initialize 0G DA service');
       }
       
-      return success;
+      return result.success;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown initialization error';
       setError(errorMessage);
@@ -119,7 +119,8 @@ export const ZeroGDAProvider: React.FC<ZeroGDAProviderProps> = ({
   // Verify data availability
   const verifyDataAvailability = async (commitment: string): Promise<boolean> => {
     try {
-      return await zeroGDAService.verifyDataAvailability(commitment);
+      const result = await zeroGDAService.verifyDataAvailability(commitment);
+      return result.success && result.available === true;
     } catch (err) {
       console.error('Data availability verification failed:', err);
       return false;
@@ -129,7 +130,8 @@ export const ZeroGDAProvider: React.FC<ZeroGDAProviderProps> = ({
   // Get blob status
   const getBlobStatus = async (commitment: string): Promise<DACommitment | null> => {
     try {
-      return await zeroGDAService.getBlobStatus(commitment);
+      const result = await zeroGDAService.getBlobStatus(commitment);
+      return result.success ? result.status || null : null;
     } catch (err) {
       console.error('Blob status check failed:', err);
       return null;
@@ -139,7 +141,11 @@ export const ZeroGDAProvider: React.FC<ZeroGDAProviderProps> = ({
   // Estimate cost
   const estimateCost = async (dataSize: number): Promise<{ cost: string; gasEstimate: number }> => {
     try {
-      return await zeroGDAService.estimateCost(dataSize);
+      const result = await zeroGDAService.estimateCost(dataSize);
+      return {
+        cost: result.cost || '0.001',
+        gasEstimate: result.gasEstimate || 21000
+      };
     } catch (err) {
       console.error('Cost estimation failed:', err);
       return { cost: '0.001', gasEstimate: 21000 };
@@ -163,7 +169,9 @@ export const ZeroGDAProvider: React.FC<ZeroGDAProviderProps> = ({
         networkId: 'unknown',
         blockHeight: 0,
         peerCount: 0,
-        syncStatus: 'disconnected'
+        syncStatus: 'disconnected',
+        encoderStatus: 'offline',
+        retrieverStatus: 'offline'
       });
     }
   };
