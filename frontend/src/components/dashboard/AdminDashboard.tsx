@@ -4,24 +4,22 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ProofMintService, Receipt, ReceiptStats } from "../../services/ProofMintService";
 import ZeroGStorageManagementDashboard from "./ZeroGStorageManagementDashboard";
 import ZeroGDADashboard from "./ZeroGDADashboard";
+import ZeroGAIAalignmentDashboard from "./ZeroGAIAalignmentDashboard";
 import { 
   Receipt as ReceiptIcon, 
   DollarSign, 
   Recycle, 
   Plus, 
   RefreshCw, 
-  AlertCircle, 
-  CheckCircle,
+  AlertCircle,
   Menu,
   Home,
   Users,
   ShoppingCart,
   Settings,
   BarChart3,
-  FileText,
   Bell,
   Search,
-  ChevronDown,
   Shield,
   Zap,
   Database,
@@ -182,6 +180,7 @@ const AdminDashboard: React.FC = () => {
       { id: 'recyclers', name: 'Recyclers', icon: Recycle },
       { id: 'storage', name: '0G Storage', icon: Database },
       { id: 'da', name: '0G Data Availability', icon: Layers },
+      { id: 'ai-alignment', name: 'AI Alignment Nodes', icon: Shield },
       { id: 'analytics', name: 'Analytics', icon: BarChart3 },
       { id: 'users', name: 'Users', icon: Users },
       { id: 'settings', name: 'Settings', icon: Settings },
@@ -542,8 +541,15 @@ const AdminDashboard: React.FC = () => {
                 </div>
               )}
 
+              {/* AI Alignment Nodes Section */}
+              {activeSection === 'ai-alignment' && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <ZeroGAIAalignmentDashboard />
+                </div>
+              )}
+
               {/* Default sections for other navigation items */}
-              {!['overview', 'merchants', 'recyclers', 'receipts', 'storage', 'da'].includes(activeSection) && (
+              {!['overview', 'merchants', 'recyclers', 'receipts', 'storage', 'da', 'ai-alignment'].includes(activeSection) && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="text-center py-12">
                     <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
