@@ -8,10 +8,25 @@ export default defineConfig({
     react(),
     tailwindcss(),
     nodePolyfills({
-      globals: { global: true }, // Polyfill global to fix "global is not defined"
-      include: ['buffer', 'process'], // Polyfill Buffer and process if needed
+      globals: { global: true },
+      include: ['buffer', 'process', 'path'],
+      exclude: ['child_process', 'fs', 'readline', 'vm', 'stream']
     }),
   ],
+  define: {
+    global: 'globalThis',
+  },
+  build: {
+    rollupOptions: {
+      external: (id) => {
+        // Externalize Node.js built-ins when imported by 0g-serving-broker
+        if (id === 'child_process' || id === 'fs/promises' || id === 'readline' || id === 'vm' || id === 'stream') {
+          return true;
+        }
+        return false;
+      }
+    }
+  },
   server: {
     fs: {
       // Restrict file access to prevent server.fs.deny bypass vulnerabilities

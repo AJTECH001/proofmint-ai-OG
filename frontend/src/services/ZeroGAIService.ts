@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { createZGComputeNetworkBroker } from "@0glabs/0g-serving-broker";
 
 export interface ZeroGAIResponse {
   text: string;
@@ -46,7 +45,22 @@ export class ZeroGAIService {
 
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       this.wallet = new ethers.Wallet(privateKey, provider);
-      this.broker = await createZGComputeNetworkBroker(this.wallet);
+
+      // Dynamic import for browser compatibility
+      try {
+        const { createZGComputeNetworkBroker } = await import("@0glabs/0g-serving-broker");
+        this.broker = await createZGComputeNetworkBroker(this.wallet);
+      } catch (importError) {
+        console.warn("0G serving broker not available in this environment:", importError);
+        // Fallback: create a mock broker for development/browser testing
+        this.broker = {
+          inference: {
+            listService: async () => [],
+            getBalance: async () => ({ balance: "0", locked: "0", available: "0" }),
+            requestService: async () => ({ text: "Mock response - 0G broker not available in browser", model: "mock", provider: "mock", verified: false })
+          }
+        };
+      }
       
       await this.discoverServices();
       this.isInitialized = true;
