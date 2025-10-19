@@ -40,6 +40,9 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
         uint256 timestamp;
         GadgetStatus gadgetStatus;
         uint256 lastStatusUpdate;
+        string daCommitment;        // 0G DA commitment hash
+        string storageRootHash;     // 0G Storage root hash for attachments
+        bool hasDABackup;           // Flag indicating DA backup exists
     }
 
     mapping(address => bool) public verifiedMerchants;
@@ -92,6 +95,17 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
         uint256 expiresAt
     );
     event SubscriptionExpired(address indexed merchant);
+    event DACommitmentLinked(
+        uint256 indexed receiptId,
+        string daCommitment,
+        string storageRootHash,
+        uint256 timestamp
+    );
+    event DACommitmentUpdated(
+        uint256 indexed receiptId,
+        string newCommitment,
+        uint256 timestamp
+    );
 
     error NotVerifiedMerchant();
     error NotRecycler();
@@ -284,7 +298,10 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
             ipfsHash: ipfsHash,
             timestamp: block.timestamp,
             gadgetStatus: GadgetStatus.Active,
-            lastStatusUpdate: block.timestamp
+            lastStatusUpdate: block.timestamp,
+            daCommitment: "",
+            storageRootHash: "",
+            hasDABackup: false
         });
 
         merchantReceipts[msg.sender].push(id);
@@ -555,6 +572,121 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
 
     function getnextReceiptId() external view returns (uint256) {
         return nextReceiptId;
+    }
+
+    /**
+     * @dev Link 0G DA commitment to a receipt
+     * @param receiptId The receipt ID to link DA commitment to
+     * @param daCommitment The 0G DA commitment hash
+     * @param storageRootHash The 0G Storage root hash for attachments (optional)
+     */
+    function linkDACommitment(
+        uint256 receiptId,
+        string calldata daCommitment,
+        string calldata storageRootHash
+    ) external {
+        Receipt storage receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        // Only merchant who issued receipt or admin can link DA commitment
+        require(
+            receipt.merchant == msg.sender || msg.sender == owner(),
+            "Only merchant or admin can link DA commitment"
+        );
+        
+        receipt.daCommitment = daCommitment;
+        receipt.storageRootHash = storageRootHash;
+        receipt.hasDABackup = bytes(daCommitment).length > 0;
+        
+        emit DACommitmentLinked(receiptId, daCommitment, storageRootHash, block.timestamp);
+    }
+
+    /**
+     * @dev Update DA commitment for a receipt (for re-submissions)
+     * @param receiptId The receipt ID
+     * @param newCommitment The new 0G DA commitment hash
+     */
+    function updateDACommitment(
+        uint256 receiptId,
+        string calldata newCommitment
+    ) external {
+        Receipt storage receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        require(
+            receipt.merchant == msg.sender || msg.sender == owner(),
+            "Only merchant or admin can update DA commitment"
+        );
+        
+        receipt.daCommitment = newCommitment;
+        receipt.hasDABackup = bytes(newCommitment).length > 0;
+        
+        emit DACommitmentUpdated(receiptId, newCommitment, block.timestamp);
+    }
+
+    /**
+     * @dev Get DA commitment and storage info for a receipt
+     * @param receiptId The receipt ID
+     * @return daCommitment The 0G DA commitment hash
+     * @return storageRootHash The 0G Storage root hash
+     * @return hasBackup Whether the receipt has DA backup
+     */
+    function getReceiptDAInfo(
+        uint256 receiptId
+    ) external view returns (
+        string memory daCommitment,
+        string memory storageRootHash,
+        bool hasBackup
+    ) {
+        Receipt memory receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        return (
+            receipt.daCommitment,
+            receipt.storageRootHash,
+            receipt.hasDABackup
+        );
+    }
+
+    /**
+     * @dev Check if a receipt has 0G DA backup
+     * @param receiptId The receipt ID
+     * @return hasBackup Whether the receipt has DA backup
+     */
+    function hasDABackup(uint256 receiptId) external view returns (bool) {
+        if (receipts[receiptId].merchant == address(0)) revert InvalidReceipt();
+        return receipts[receiptId].hasDABackup;
+    }
+
+    /**
+     * @dev Get all receipts with DA backup for a merchant
+     * @param merchant The merchant address
+     * @return receiptIds Array of receipt IDs with DA backup
+     */
+    function getMerchantReceiptsWithDA(
+        address merchant
+    ) external view returns (uint256[] memory) {
+        uint256[] memory allReceipts = merchantReceipts[merchant];
+        uint256 count = 0;
+        
+        // Count receipts with DA backup
+        for (uint256 i = 0; i < allReceipts.length; i++) {
+            if (receipts[allReceipts[i]].hasDABackup) {
+                count++;
+            }
+        }
+        
+        // Create array of receipts with DA backup
+        uint256[] memory receiptsWithDA = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allReceipts.length; i++) {
+            if (receipts[allReceipts[i]].hasDABackup) {
+                receiptsWithDA[index] = allReceipts[i];
+                index++;
+            }
+        }
+        
+        return receiptsWithDA;
     }
 
     function pause() external onlyAdmin {
