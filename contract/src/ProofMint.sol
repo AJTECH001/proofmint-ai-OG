@@ -45,12 +45,25 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
         bool hasDABackup;           // Flag indicating DA backup exists
     }
 
+    // INFT (Intelligent NFT) Support - ERC-7857
+    struct INFTTraits {
+        string aiAgentCID;          // 0G Storage CID of AI agent model/weights
+        uint256 recyclabilityScore; // 0-100 score
+        uint256 carbonCredits;      // Accumulated carbon credits (in wei)
+        uint256 sustainabilityScore; // 0-100 score  
+        uint256 deviceAge;          // Age in days since issuance
+        uint256 warrantyDaysLeft;   // Warranty days remaining
+        bool isRecyclingEligible;   // Dynamic trait
+        uint256 lastTraitUpdate;    // Last update timestamp
+    }
+
     mapping(address => bool) public verifiedMerchants;
     mapping(address => bool) public recyclers;
     mapping(uint256 => Receipt) public receipts;
     mapping(address => uint256[]) public merchantReceipts;
     mapping(address => uint256[]) public buyerReceipts;
     mapping(address => Subscription) public subscriptions;
+    mapping(uint256 => INFTTraits) public inftTraits; // INFT traits per receipt
 
     // USDC token address (Filecoin Calibration testnet)
     IERC20 public constant USDC = IERC20(0xb3042734b608a1B16e9e86B374A3f3e389B4cDf0);
@@ -105,6 +118,28 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
         uint256 indexed receiptId,
         string newCommitment,
         uint256 timestamp
+    );
+    event INFTTraitsInitialized(
+        uint256 indexed receiptId,
+        string aiAgentCID,
+        uint256 recyclabilityScore,
+        uint256 sustainabilityScore
+    );
+    event INFTTraitsUpdated(
+        uint256 indexed receiptId,
+        uint256 newRecyclabilityScore,
+        uint256 carbonCredits,
+        uint256 deviceAge
+    );
+    event AIAgentUpdated(
+        uint256 indexed receiptId,
+        string newAIAgentCID,
+        uint256 timestamp
+    );
+    event CarbonCreditsEarned(
+        uint256 indexed receiptId,
+        uint256 creditsEarned,
+        uint256 totalCredits
     );
 
     error NotVerifiedMerchant();
@@ -687,6 +722,181 @@ contract ProofMint is Ownable, ERC721, ERC721Enumerable, ERC721URIStorage, Reent
         }
         
         return receiptsWithDA;
+    }
+
+    /**
+     * @dev Initialize INFT traits for a receipt
+     * @param receiptId The receipt ID
+     * @param aiAgentCID The 0G Storage CID of the AI agent
+     * @param recyclabilityScore Initial recyclability score (0-100)
+     * @param sustainabilityScore Initial sustainability score (0-100)
+     * @param warrantyDays Warranty duration in days
+     */
+    function initializeINFTTraits(
+        uint256 receiptId,
+        string calldata aiAgentCID,
+        uint256 recyclabilityScore,
+        uint256 sustainabilityScore,
+        uint256 warrantyDays
+    ) external {
+        Receipt memory receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        // Only merchant who issued receipt or admin can initialize traits
+        require(
+            receipt.merchant == msg.sender || msg.sender == owner(),
+            "Only merchant or admin can initialize INFT traits"
+        );
+        
+        require(recyclabilityScore <= 100, "Recyclability score must be 0-100");
+        require(sustainabilityScore <= 100, "Sustainability score must be 0-100");
+        
+        inftTraits[receiptId] = INFTTraits({
+            aiAgentCID: aiAgentCID,
+            recyclabilityScore: recyclabilityScore,
+            carbonCredits: 0,
+            sustainabilityScore: sustainabilityScore,
+            deviceAge: 0,
+            warrantyDaysLeft: warrantyDays,
+            isRecyclingEligible: false,
+            lastTraitUpdate: block.timestamp
+        });
+        
+        emit INFTTraitsInitialized(receiptId, aiAgentCID, recyclabilityScore, sustainabilityScore);
+    }
+
+    /**
+     * @dev Update INFT traits dynamically
+     * @param receiptId The receipt ID
+     */
+    function updateINFTTraits(uint256 receiptId) external {
+        Receipt memory receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        INFTTraits storage traits = inftTraits[receiptId];
+        
+        // Calculate device age in days
+        uint256 ageInDays = (block.timestamp - receipt.timestamp) / 1 days;
+        traits.deviceAge = ageInDays;
+        
+        // Calculate warranty days left
+        if (traits.warrantyDaysLeft > 0) {
+            uint256 daysSinceLastUpdate = (block.timestamp - traits.lastTraitUpdate) / 1 days;
+            if (daysSinceLastUpdate < traits.warrantyDaysLeft) {
+                traits.warrantyDaysLeft -= daysSinceLastUpdate;
+            } else {
+                traits.warrantyDaysLeft = 0;
+            }
+        }
+        
+        // Update recycling eligibility (eligible after 2 years or when warranty expires)
+        traits.isRecyclingEligible = ageInDays >= 730 || traits.warrantyDaysLeft == 0;
+        
+        // Increase recyclability score over time (devices become easier to recycle as they age)
+        if (ageInDays > 365 && traits.recyclabilityScore < 95) {
+            traits.recyclabilityScore = traits.recyclabilityScore + 5;
+            if (traits.recyclabilityScore > 100) {
+                traits.recyclabilityScore = 100;
+            }
+        }
+        
+        traits.lastTraitUpdate = block.timestamp;
+        
+        emit INFTTraitsUpdated(receiptId, traits.recyclabilityScore, traits.carbonCredits, ageInDays);
+    }
+
+    /**
+     * @dev Award carbon credits for recycling or sustainable actions
+     * @param receiptId The receipt ID
+     * @param credits Amount of carbon credits to award (in wei)
+     */
+    function awardCarbonCredits(uint256 receiptId, uint256 credits) external onlyRecycler {
+        Receipt memory receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        INFTTraits storage traits = inftTraits[receiptId];
+        traits.carbonCredits += credits;
+        
+        emit CarbonCreditsEarned(receiptId, credits, traits.carbonCredits);
+    }
+
+    /**
+     * @dev Update AI agent CID
+     * @param receiptId The receipt ID
+     * @param newAIAgentCID New AI agent CID
+     */
+    function updateAIAgent(uint256 receiptId, string calldata newAIAgentCID) external {
+        Receipt memory receipt = receipts[receiptId];
+        if (receipt.merchant == address(0)) revert InvalidReceipt();
+        
+        // Only owner of the NFT or admin can update AI agent
+        require(
+            ownerOf(receiptId) == msg.sender || msg.sender == owner(),
+            "Only NFT owner or admin can update AI agent"
+        );
+        
+        inftTraits[receiptId].aiAgentCID = newAIAgentCID;
+        inftTraits[receiptId].lastTraitUpdate = block.timestamp;
+        
+        emit AIAgentUpdated(receiptId, newAIAgentCID, block.timestamp);
+    }
+
+    /**
+     * @dev Get INFT traits for a receipt
+     * @param receiptId The receipt ID
+     * @return aiAgentCID The AI agent CID
+     * @return recyclabilityScore The recyclability score
+     * @return carbonCredits The carbon credits earned
+     * @return sustainabilityScore The sustainability score
+     * @return deviceAge The device age in days
+     * @return warrantyDaysLeft The warranty days left
+     * @return isRecyclingEligible Whether the device is eligible for recycling
+     */
+    function getINFTTraits(uint256 receiptId) external view returns (
+        string memory aiAgentCID,
+        uint256 recyclabilityScore,
+        uint256 carbonCredits,
+        uint256 sustainabilityScore,
+        uint256 deviceAge,
+        uint256 warrantyDaysLeft,
+        bool isRecyclingEligible
+    ) {
+        if (receipts[receiptId].merchant == address(0)) revert InvalidReceipt();
+        
+        INFTTraits memory traits = inftTraits[receiptId];
+        
+        // Calculate current device age
+        uint256 currentAge = (block.timestamp - receipts[receiptId].timestamp) / 1 days;
+        
+        return (
+            traits.aiAgentCID,
+            traits.recyclabilityScore,
+            traits.carbonCredits,
+            traits.sustainabilityScore,
+            currentAge,
+            traits.warrantyDaysLeft,
+            traits.isRecyclingEligible
+        );
+    }
+
+    /**
+     * @dev Get AI agent CID (ERC-7857 compatibility)
+     * @param receiptId The receipt/token ID
+     * @return The AI agent CID
+     */
+    function getAgentCID(uint256 receiptId) external view returns (string memory) {
+        if (receipts[receiptId].merchant == address(0)) revert InvalidReceipt();
+        return inftTraits[receiptId].aiAgentCID;
+    }
+
+    /**
+     * @dev Check if receipt has INFT traits initialized
+     * @param receiptId The receipt ID
+     * @return True if INFT traits are initialized
+     */
+    function hasINFTTraits(uint256 receiptId) external view returns (bool) {
+        if (receipts[receiptId].merchant == address(0)) revert InvalidReceipt();
+        return bytes(inftTraits[receiptId].aiAgentCID).length > 0;
     }
 
     function pause() external onlyAdmin {
