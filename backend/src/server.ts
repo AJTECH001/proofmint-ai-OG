@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import storageRoutes from './routes/storage';
 import daRoutes from './routes/da';
+import fraudDetectionRoutes from './routes/fraudDetection';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { validateZeroGConfig } from './config/zeroG';
 
@@ -69,6 +70,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/storage', storageRoutes);
 app.use('/api/da', daRoutes);
+app.use('/api/fraud', fraudDetectionRoutes);
 
 // 404 handler
 app.use(notFound);
