@@ -11,6 +11,8 @@ const compression_1 = __importDefault(require("compression"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const storage_1 = __importDefault(require("./routes/storage"));
+const da_1 = __importDefault(require("./routes/da"));
+const fraudDetection_1 = __importDefault(require("./routes/fraudDetection"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const zeroG_1 = require("./config/zeroG");
 dotenv_1.default.config();
@@ -52,6 +54,8 @@ app.get('/health', (req, res) => {
     });
 });
 app.use('/api/storage', storage_1.default);
+app.use('/api/da', da_1.default);
+app.use('/api/fraud', fraudDetection_1.default);
 app.use(errorHandler_1.notFound);
 app.use(errorHandler_1.errorHandler);
 const server = app.listen(PORT, () => {
